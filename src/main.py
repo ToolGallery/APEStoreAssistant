@@ -25,6 +25,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--products", nargs="+", default=[], type=str, help="")
     parser.add_argument("-l", "--location", type=str, default="", help="")
+    parser.add_argument("-pc", "--postal-code", type=str, default="", help="")
+    parser.add_argument("--state", type=str, default="", help="")
     parser.add_argument("-lp", "--list-products", action="store_true", help="")
     parser.add_argument(
         "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
@@ -39,7 +41,13 @@ def main():
             logging.info(product.intro())
         sys.exit(0)
 
-    shop_data = ShopSchema(args.country, models=args.products, location=args.location)
+    shop_data = ShopSchema(
+        args.country,
+        models=args.products,
+        location=args.location,
+        postal_code=args.postal_code,
+        state=args.state,
+    )
     InventoryMonitor().start(shop_data, get_notification_providers(), interval=5)
 
 

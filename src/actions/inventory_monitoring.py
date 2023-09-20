@@ -77,15 +77,27 @@ class InventoryMonitor(object):
                     "Inventory information push failed with error: ", exc_info=e
                 )
 
-    def get_data(self, country: str, models: list[str], location: str):
+    def get_data(
+        self,
+        country: str,
+        models: list[str],
+        location: str = "",
+        postal_code: str = "",
+        state: str = "",
+    ):
         parts = {f"parts.{idx}": i for idx, i in enumerate(models)}
         search_params = {
             "searchNearby": "true",
             "pl": "true",
             "mts.0": "regular",
             "mts.1": "compact",
-            "location": location,
         } | parts
+        if location:
+            search_params["location"] = location
+        if postal_code:
+            search_params["postalCode"] = postal_code
+        if state:
+            self["state"] = state
 
         resp = self.request.get(
             f"/{country}/shop/fulfillment-messages", params=search_params

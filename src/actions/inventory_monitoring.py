@@ -108,7 +108,7 @@ class InventoryMonitor(object):
                 ].replace("\xa0", " ")
                 deliveries.append(
                     DeliverySchema(
-                        province=address["state"],
+                        state=address["state"],
                         city=address["city"],
                         district=address["district"],
                         store_name=store["storeName"],

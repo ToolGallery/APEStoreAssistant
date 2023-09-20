@@ -13,7 +13,6 @@ class NotificationBase(object):
     def __init__(self, token: Optional[str] = None) -> None:
         super().__init__()
         self.token = token
-        # self.min_interval = min_interval
         self.last_push_maps: dict[str, float] = {}
 
     def push(

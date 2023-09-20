@@ -10,7 +10,7 @@ class ShopSchema(object):
 
 @dataclasses.dataclass()
 class DeliverySchema(object):
-    province: str
+    state: str
     city: str
     district: str
     store_name: str

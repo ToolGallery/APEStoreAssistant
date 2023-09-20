@@ -5,7 +5,9 @@ import dataclasses
 class ShopSchema(object):
     country: str
     models: list[str]
-    location: str
+    location: str = ''
+    postal_code: str = ''
+    state: str = ''
 
 
 @dataclasses.dataclass()

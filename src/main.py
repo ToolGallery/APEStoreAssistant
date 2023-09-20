@@ -25,8 +25,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--products", nargs="+", default=[], type=str, help="")
     parser.add_argument("-l", "--location", type=str, default="", help="")
-    parser.add_argument("--list-products", action="store_true", help="")
-    parser.add_argument("-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp")
+    parser.add_argument("-lp", "--list-products", action="store_true", help="")
+    parser.add_argument(
+        "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
+    )
     parser.add_argument("--code", type=str, default="", help="15|15-pro")
     args = parser.parse_args()
 

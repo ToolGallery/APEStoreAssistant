@@ -21,7 +21,7 @@ def get_notification_providers() -> list[NotificationBase]:
     return providers
 
 
-def main():
+def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--products", nargs="+", default=[], type=str, help="")
     parser.add_argument("-l", "--location", type=str, default="", help="")
@@ -32,7 +32,11 @@ def main():
         "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
     )
     parser.add_argument("--code", type=str, default="", help="15|15-pro")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
 
     if args.list_products:
         assert args.country and args.code, "Lack of key information"

@@ -5,9 +5,9 @@ import dataclasses
 class ShopSchema(object):
     country: str
     models: list[str]
-    location: str = ''
-    postal_code: str = ''
-    state: str = ''
+    location: str = ""
+    postal_code: str = ""
+    state: str = ""
 
 
 @dataclasses.dataclass()
@@ -43,19 +43,22 @@ class ProductSchema(object):
     price: float
     price_display: str
     price_currency: str
-    carrier_model: str = ''
+    carrier_model: str = ""
 
     def key(self):
         return "-".join([self.type, self.capacity, self.color])
 
     def intro(self):
-        return " ".join(
-            [i for i in [
+        buffers = [
+            i
+            for i in [
                 self.model,
                 self.type,
                 self.capacity,
                 self.carrier_model,
                 self.color_display,
                 self.price_display,
-            ] if i]
-        )
+            ]
+            if i
+        ]
+        return " ".join(buffers)

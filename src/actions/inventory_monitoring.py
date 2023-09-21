@@ -97,7 +97,7 @@ class InventoryMonitor(object):
         if postal_code:
             search_params["postalCode"] = postal_code
         if state:
-            self["state"] = state
+            search_params["state"] = state
 
         resp = self.request.get(
             f"/{country}/shop/fulfillment-messages", params=search_params

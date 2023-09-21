@@ -29,6 +29,7 @@ class InventoryMonitor(object):
         notification_providers: Optional[list[NotificationBase]] = None,
         interval: int = 5,
     ):
+        logger.info(f"Start monitoring, query interval: {interval}s")
         while not self.is_stop:
             try:
                 inventory_data = self.get_data(

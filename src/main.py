@@ -6,7 +6,12 @@ import sys
 from common.schemas import ShopSchema
 from actions.inventory_monitoring import InventoryMonitor
 from libs.address import get_address
-from libs.notifications import DingTalkNotification, NotificationBase, BarkNotification
+from libs.notifications import (
+    DingTalkNotification,
+    NotificationBase,
+    BarkNotification,
+    FeishuNotification,
+)
 from libs.products import get_products
 
 
@@ -15,10 +20,14 @@ def get_notification_providers() -> list[NotificationBase]:
     dingtalk_token = os.environ.get("DINGTALK_TOKEN")
     bark_host = os.environ.get("BARK_HOST")
     bark_token = os.environ.get("BARK_TOKEN")
+    feisu_token = os.environ.get("FEISHU_TOKEN")
+
     if dingtalk_token:
         providers.append(DingTalkNotification(dingtalk_token))
     if bark_token:
         providers.append(BarkNotification(bark_token, host=bark_host))
+    if feisu_token:
+        providers.append(FeishuNotification(feisu_token))
     return providers
 
 

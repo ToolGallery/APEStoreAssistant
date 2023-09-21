@@ -8,7 +8,7 @@ Reduce the waiting time
 - [x] Query address list
 - [x] Monitor inventory for multiple products
 - [x] Support multiple countries
-- [x] Notification support (Dingtalk | Bark)
+- [x] Notification support (Dingtalk | Bark | Feishu)
 - [ ] Automatic order placement
 
 ## Usage
@@ -56,7 +56,7 @@ Only supports certain countries.
 ```shell
 docker run --rm toolgallery/ape-store-assistant:main -la -c jp
 
-# Continue filter
+# continue filter
 docker run --rm toolgallery/ape-store-assistant:main -la -c jp -ft 青森県
 docker run --rm toolgallery/ape-store-assistant:main -la -c jp -ft "青森県 山形県"
 ```
@@ -69,6 +69,8 @@ DINGTALK_TOKEN
 # bark notification
 BARK_HOST
 BARK_TOKEN
+# feishu notification
+FEISHU_TOKEN
 ```
 
 

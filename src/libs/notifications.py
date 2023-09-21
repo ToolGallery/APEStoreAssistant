@@ -73,3 +73,21 @@ class BarkNotification(NotificationBase):
         resp_json = resp.json()
 
         assert resp_json.get("code") == 200, resp_json.get("message")
+
+
+class FeishuNotification(NotificationBase):
+    name = "feishu"
+
+    def push_data(self, title: str, content: str):
+        assert self.token, "token credentials must be provided"
+        url = f"https://open.feishu.cn/open-apis/bot/v2/hook/{self.token}"
+        resp = requests.post(
+            url,
+            json={
+                "msg_type": "text",
+                "content": {"text": title + "\r\n\r\n" + content},
+            },
+        )
+        resp_json = resp.json()
+
+        assert resp_json.get("code") == 0, resp_json.get("msg")

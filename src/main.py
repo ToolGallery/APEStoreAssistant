@@ -32,6 +32,7 @@ def get_args():
         "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
     )
     parser.add_argument("--code", type=str, default="", help="15|15-pro")
+    parser.add_argument("-i", "--interval", type=int, default=5, help="Query interval")
     return parser.parse_args()
 
 
@@ -52,7 +53,7 @@ def main():
         postal_code=args.postal_code,
         state=args.state,
     )
-    InventoryMonitor().start(shop_data, get_notification_providers(), interval=5)
+    InventoryMonitor().start(shop_data, get_notification_providers(), interval=args.interval)
 
 
 if __name__ == "__main__":

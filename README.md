@@ -1,7 +1,9 @@
 # APEStoreAssistant
+
 Reduce the waiting time
 
 ## Features
+
 - [x] Query product list
 - [x] Monitor inventory for multiple products
 - [x] Support multiple countries
@@ -26,6 +28,7 @@ docker run --rm toolgallery/ape-store-assistant:main -h
 -lp, --list-products
 -c COUNTRY, --country COUNTRY cn|hk-zh|sg|jp
 --code CODE 15|15-pro
+-i, --interval default:5 Query interval
 ```
 
 #### Query products
@@ -46,8 +49,8 @@ docker run -e DINGTALK_TOKEN=yourtoken --rm toolgallery/ape-store-assistant:main
 docker run -e BARK_TOKEN=yourtoken --rm toolgallery/ape-store-assistant:main -c sg -p MTV13ZP/A MTV73ZP/A -l 329816
 ```
 
-
 ### Supported environment variables
+
 ```shell
 # dingtalk notification
 DINGTALK_TOKEN

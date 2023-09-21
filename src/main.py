@@ -5,6 +5,7 @@ import sys
 
 from common.schemas import ShopSchema
 from actions.inventory_monitoring import InventoryMonitor
+from libs.address import get_address
 from libs.notifications import DingTalkNotification, NotificationBase, BarkNotification
 from libs.products import get_products
 
@@ -28,11 +29,13 @@ def get_args():
     parser.add_argument("-pc", "--postal-code", type=str, default="", help="")
     parser.add_argument("--state", type=str, default="", help="")
     parser.add_argument("-lp", "--list-products", action="store_true", help="")
+    parser.add_argument("-la", "--list-address", action="store_true", help="")
     parser.add_argument(
         "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
     )
     parser.add_argument("--code", type=str, default="", help="15|15-pro")
     parser.add_argument("-i", "--interval", type=int, default=5, help="Query interval")
+    parser.add_argument("-ft", "--filter", type=str, default="", help="")
     return parser.parse_args()
 
 
@@ -45,6 +48,12 @@ def main():
         for product in products:
             logging.info(product.intro())
         sys.exit(0)
+    if args.list_address:
+        assert args.country, "Lack of key information"
+        addresses = get_address(args.country, args.filter)
+        for address in addresses:
+            logging.info(address)
+        sys.exit(0)
 
     shop_data = ShopSchema(
         args.country,
@@ -53,7 +62,9 @@ def main():
         postal_code=args.postal_code,
         state=args.state,
     )
-    InventoryMonitor().start(shop_data, get_notification_providers(), interval=args.interval)
+    InventoryMonitor().start(
+        shop_data, get_notification_providers(), interval=args.interval
+    )
 
 
 if __name__ == "__main__":

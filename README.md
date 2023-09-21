@@ -5,6 +5,7 @@ Reduce the waiting time
 ## Features
 
 - [x] Query product list
+- [x] Query address list
 - [x] Monitor inventory for multiple products
 - [x] Support multiple countries
 - [x] Notification support (Dingtalk | Bark)
@@ -47,6 +48,17 @@ docker run -e DINGTALK_TOKEN=yourtoken --rm toolgallery/ape-store-assistant:main
 
 # through bark, support both
 docker run -e BARK_TOKEN=yourtoken --rm toolgallery/ape-store-assistant:main -c sg -p MTV13ZP/A MTV73ZP/A -l 329816
+```
+
+#### Query addrsss
+Only supports certain countries.
+
+```shell
+docker run --rm toolgallery/ape-store-assistant:main -la -c jp
+
+# Continue filter
+docker run --rm toolgallery/ape-store-assistant:main -la -c jp -ft 青森県
+docker run --rm toolgallery/ape-store-assistant:main -la -c jp -ft "青森県 山形県"
 ```
 
 ### Supported environment variables

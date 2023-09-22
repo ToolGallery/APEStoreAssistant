@@ -373,7 +373,7 @@ class Order(object):
                 "_a": "continueFromReviewToProcess",
                 "_m": "checkout.review.placeOrder",
             },
-            assert_code=302,
+            assert_code=0,
         )
         self.get_page_with_meta(
             self.secure_host + place_order_data["head"]["data"]["url"], None
@@ -385,7 +385,7 @@ class Order(object):
                 "_a": "checkStatus",
                 "_m": "spinner",
             },
-            assert_code=302,
+            assert_code=0,
         )
 
         thank_you_data = self.get_page_with_meta(

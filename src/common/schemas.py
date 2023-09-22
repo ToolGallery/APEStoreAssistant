@@ -62,3 +62,21 @@ class ProductSchema(object):
             if i
         ]
         return " ".join(buffers)
+
+
+@dataclasses.dataclass()
+class PaymentSchema(object):
+    label: str
+    key: str
+    value: str
+    numbers: list[int]
+
+    def intro(self):
+        return " ".join(
+            [self.value, self.label]
+            + (
+                ["support numbers: ", ",".join(map(str, self.numbers))]
+                if self.numbers
+                else []
+            )
+        )

@@ -1,0 +1,92 @@
+[
+  {
+    "sublabel": "Visa, Mastercard",
+    "label": "信用卡",
+    "moduleKey": "creditCard",
+    "controlType": "RADIO",
+    "value": "CREDIT"
+  },
+  {
+    "labelImageUrl": "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/huabei-installment-logo?wid=280&hei=52&fmt=jpeg&qlt=90&.v=1647587266354",
+    "labelImageHeight": "26",
+    "labelImageWidth": "140",
+    "labelImageAlt": "花呗分期",
+    "controlType": "RADIO",
+    "value": "installments0001243254",
+    "message": "如选择分期并下单，您同意您的部分信息（如网络订单号、购买价格和从您的 IP地址获取的城市信息）可能会被发送给您选择的金融机构及其服务提供商，以便其根据其隐私政策处理您的请求并用于反诈目的。",
+    "moduleKey": "installments",
+    "numbers": [
+      3,
+      6,
+      12
+    ]
+  },
+  {
+    "labelImageUrl": "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/checkout-bank-WeChat?wid=280&hei=52&fmt=jpeg&qlt=90&.v=0",
+    "labelImageHeight": "26",
+    "labelImageWidth": "140",
+    "labelImageAlt": "微信支付",
+    "moduleKey": "weChat",
+    "controlType": "RADIO",
+    "value": "WECHAT"
+  },
+  {
+    "labelImageUrl": "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/checkout-bank-CMB?wid=280&hei=52&fmt=jpeg&qlt=90&.v=1541793470488",
+    "labelImageHeight": "26",
+    "labelImageWidth": "140",
+    "labelImageAlt": "招商银行",
+    "controlType": "RADIO",
+    "value": "installments0001321713",
+    "message": "",
+    "moduleKey": "installments",
+    "numbers": [
+      1,
+      3,
+      6,
+      12,
+      24
+    ]
+  },
+  {
+    "labelImageUrl": "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/checkout-bank-ICBC?wid=280&hei=52&fmt=jpeg&qlt=90&.v=1541793472543",
+    "labelImageHeight": "26",
+    "labelImageWidth": "140",
+    "labelImageAlt": "工商银行",
+    "controlType": "RADIO",
+    "value": "installments0000833448",
+    "message": "",
+    "moduleKey": "installments",
+    "numbers": [
+      3,
+      6,
+      12,
+      24
+    ]
+  },
+  {
+    "labelImageUrl": "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/checkout-bank-Alipay?wid=280&hei=52&fmt=jpeg&qlt=95&.v=0",
+    "labelImageHeight": "26",
+    "labelImageWidth": "140",
+    "labelImageAlt": "支付宝",
+    "moduleKey": "aliPay",
+    "controlType": "RADIO",
+    "value": "ALIPAY"
+  },
+  {
+    "labelImageUrl": "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/checkout-bank-CCB?wid=280&hei=52&fmt=jpeg&qlt=90&.v=1573863320558",
+    "labelImageHeight": "26",
+    "labelImageWidth": "140",
+    "labelImageAlt": "中国建设银行",
+    "controlType": "RADIO",
+    "value": "installments0000882476",
+    "message": "",
+    "moduleKey": "installments",
+    "numbers": [
+      1,
+      3,
+      6,
+      12,
+      24
+    ]
+  }
+]

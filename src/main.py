@@ -12,6 +12,7 @@ from libs.notifications import (
     BarkNotification,
     FeishuNotification,
 )
+from libs.payments import get_payments
 from libs.products import get_products
 
 
@@ -39,6 +40,7 @@ def get_args():
     parser.add_argument("--state", type=str, default="", help="")
     parser.add_argument("-lp", "--list-products", action="store_true", help="")
     parser.add_argument("-la", "--list-address", action="store_true", help="")
+    parser.add_argument("-lpa", "--list-payments", action="store_true", help="")
     parser.add_argument(
         "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
     )
@@ -62,6 +64,12 @@ def main():
         addresses = get_address(args.country, args.filter)
         for address in addresses:
             logging.info(address)
+        sys.exit(0)
+    if args.list_payments:
+        assert args.country, "Lack of key information"
+        payments = get_payments(args.country)
+        for payment in payments:
+            logging.info(payment.intro())
         sys.exit(0)
 
     shop_data = ShopSchema(

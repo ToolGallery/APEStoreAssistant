@@ -1,4 +1,5 @@
 import dataclasses
+from typing import Optional
 
 
 @dataclasses.dataclass()
@@ -99,9 +100,9 @@ class OrderDeliverySchema(object):
 class OrderSchema(object):
     model: str
     model_code: str
-    store_number: str
     country: str
-    state: str
-    city: str
-    district: str
-    delivery: OrderDeliverySchema
+    state: str = ""
+    city: str = ""
+    district: str = ""
+    store_number: str = ""
+    delivery: Optional[OrderDeliverySchema] = None

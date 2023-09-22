@@ -63,6 +63,8 @@ class Order(object):
         )
 
         selected_window = self.get_select_window(address_data)
+        if not selected_window:
+            return False
 
         self.fill_contact(
             selected_window,
@@ -239,9 +241,11 @@ class Order(object):
         return store_resp
 
     def get_select_window(self, address_data: dict):
-        pick_data = address_data["body"]["checkout"]["fulfillment"]["pickupTab"][
-            "pickup"
-        ]["timeSlot"]["dateTimeSlots"]["d"]
+        pickups = address_data["body"]["checkout"]["fulfillment"]["pickupTab"]["pickup"]
+        if "timeSlot" not in pickups:
+            logger.info("No available pickup time")
+            return None
+        pick_data = pickups["timeSlot"]["dateTimeSlots"]["d"]
         selected_window = {}
         for idx, window in enumerate(pick_data["timeSlotWindows"]):
             assert isinstance(window, dict)
@@ -386,10 +390,6 @@ class Order(object):
                 "_m": "spinner",
             },
             assert_code=0,
-        )
-
-        thank_you_data = self.get_page_with_meta(
-            self.secure_host + status_data["head"]["data"]["url"], None
         )
 
         logger.info("Order done.")

@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 
-from common.schemas import ShopSchema
+from common.schemas import ShopSchema, DeliverySchema, OrderDeliverySchema
 from actions.inventory_monitoring import InventoryMonitor
 from libs.address import get_address
 from libs.notifications import (
@@ -12,6 +12,7 @@ from libs.notifications import (
     BarkNotification,
     FeishuNotification,
 )
+from libs.payments import get_payments
 from libs.products import get_products
 
 
@@ -31,6 +32,27 @@ def get_notification_providers() -> list[NotificationBase]:
     return providers
 
 
+def get_delivery_data() -> DeliverySchema:
+    data = OrderDeliverySchema(
+        first_name=os.environ.get("DELIVERY_FIRST_NAME"),
+        last_name=os.environ.get("DELIVERY_LAST_NAME"),
+        email=os.environ.get("DELIVERY_EMAIL"),
+        phone=os.environ.get("DELIVERY_PHONE"),
+        idcard=os.environ.get("DELIVERY_IDCARD"),
+        payment=os.environ.get("DELIVERY_PAYMENT"),
+        payment_number=int(os.environ.get("DELIVERY_PAYMENT_NUMBER") or 0),
+    )
+    assert (
+        data.first_name
+        and data.last_name
+        and data.email
+        and data.phone
+        and data.idcard
+        and data.payment
+    ), "Please check the delivery information"
+    return data
+
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--products", nargs="+", default=[], type=str, help="")
@@ -39,6 +61,9 @@ def get_args():
     parser.add_argument("--state", type=str, default="", help="")
     parser.add_argument("-lp", "--list-products", action="store_true", help="")
     parser.add_argument("-la", "--list-address", action="store_true", help="")
+    parser.add_argument("-lpa", "--list-payments", action="store_true", help="")
+    parser.add_argument("-o", "--order", action="store_true", help="")
+    parser.add_argument("-onc", "--order-notice-count", type=int, default=1, help="")
     parser.add_argument(
         "-c", "--country", type=str, required=True, help="cn|hk-zh|sg|jp"
     )
@@ -63,6 +88,16 @@ def main():
         for address in addresses:
             logging.info(address)
         sys.exit(0)
+    if args.list_payments:
+        assert args.country, "Lack of key information"
+        payments = get_payments(args.country)
+        for payment in payments:
+            logging.info(payment.intro())
+        sys.exit(0)
+    delivery_data = None
+    if args.order:
+        delivery_data = get_delivery_data()
+        assert args.code, "Lack of key information"
 
     shop_data = ShopSchema(
         args.country,
@@ -70,9 +105,15 @@ def main():
         location=args.location,
         postal_code=args.postal_code,
         state=args.state,
+        code=args.code,
     )
     InventoryMonitor().start(
-        shop_data, get_notification_providers(), interval=args.interval
+        shop_data,
+        order=args.order,
+        delivery_data=delivery_data,
+        notification_providers=get_notification_providers(),
+        interval=args.interval,
+        order_notice_count=args.order_notice_count,
     )
 
 

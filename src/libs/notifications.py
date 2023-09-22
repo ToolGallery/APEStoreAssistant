@@ -30,6 +30,14 @@ class NotificationBase(object):
 
         self.last_push_maps[key] = time.time()
 
+    def repeat_push(
+        self, title: str, content: str, max_count: int = 0, interval: int = 5
+    ):
+        max_count = 1024 * 1024 if max_count <= 0 else max_count
+        for i in range(0, max_count):
+            self.push_data(title, content)
+            time.sleep(interval)
+
     @abc.abstractmethod
     def push_data(self, title: str, content: str):
         pass

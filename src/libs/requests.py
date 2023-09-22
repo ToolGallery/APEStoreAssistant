@@ -34,5 +34,25 @@ class Request(object):
         headers: Optional[dict] = None,
     ):
         return self.request(
-            "GET", self.request_host + path, params=params, data=data, headers=headers
+            "GET", self.get_url(path), params=params, data=data, headers=headers
+        )
+
+    def get_url(self, path: str):
+        if path.startswith("http"):
+            return path
+        return self.request_host + path
+
+    def post(
+        self,
+        path: str,
+        params: Optional[dict] = None,
+        data: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        fetch_header: bool = True,
+    ):
+        headers = headers if headers else self.session.headers
+        if fetch_header:
+            headers = dict(headers) | {"X-Requested-With": "Fetch"}
+        return self.request(
+            "POST", self.get_url(path), params=params, data=data, headers=headers
         )

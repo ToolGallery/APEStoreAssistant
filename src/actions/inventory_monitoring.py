@@ -1,11 +1,13 @@
 import logging
+import sys
 import time
 from enum import Enum
 from typing import Optional
 
+from actions.order import Order
 from libs.requests import Request
 from libs.notifications import NotificationBase
-from common.schemas import DeliverySchema, ShopSchema
+from common.schemas import DeliverySchema, ShopSchema, OrderSchema, OrderDeliverySchema
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +22,23 @@ class DeliveryStatusEnum(str, Enum):
 class InventoryMonitor(object):
     def __init__(self) -> None:
         super().__init__()
-        self.request = Request(apple_api_host)
+        self.session = Request(apple_api_host)
         self.is_stop = False
+        self.order: Optional[Order] = None
 
     def start(
         self,
         shop_data: ShopSchema,
+        order: bool = False,
+        delivery_data: Optional[OrderDeliverySchema] = None,
         notification_providers: Optional[list[NotificationBase]] = None,
         interval: int = 5,
+        order_notice_count: int = 1,
     ):
         logger.info(f"Start monitoring, query interval: {interval}s")
+        if order:
+            self.order = Order(country=shop_data.country)
+
         while not self.is_stop:
             try:
                 inventory_data = self.get_data(
@@ -48,11 +57,49 @@ class InventoryMonitor(object):
                 if available_lists and notification_providers:
                     self.push_notifications(available_lists, notification_providers)
 
+                if available_lists and order:
+                    for pickup in available_lists:
+                        # fixme Is there a better way to obtain the model code?
+                        order_data = OrderSchema(
+                            model=pickup.model,
+                            model_code=shop_data.code,
+                            store_number=pickup.store_number,
+                            country=shop_data.country,
+                            state=pickup.state,
+                            city=pickup.city,
+                            district=pickup.district,
+                            delivery=delivery_data,
+                        )
+                        self.start_order(
+                            order_data,
+                            notification_providers,
+                            notice_count=order_notice_count,
+                        )
+
             except Exception as e:
                 logging.exception(
                     "Failed to retrieve inventory data with error: ", exc_info=e
                 )
             time.sleep(interval)
+
+    def start_order(
+        self,
+        data: OrderSchema,
+        notification_providers: list[NotificationBase],
+        notice_count: int,
+    ):
+        order_result = self.order.start_order(data)
+        if order_result:
+            for provider in notification_providers:
+                title, content = (
+                    "Order success notification",
+                    "Check your email for detailed information.",
+                )
+                provider.repeat_push(title, content, max_count=notice_count)
+            logger.info(
+                "The order has been successfully placed, and the program will automatically exit."
+            )
+            sys.exit(0)
 
     def push_notifications(
         self, pickup_lists: list[DeliverySchema], providers: list[NotificationBase]
@@ -100,7 +147,7 @@ class InventoryMonitor(object):
         if state:
             search_params["state"] = state
 
-        resp = self.request.get(
+        resp = self.session.get(
             f"/{country}/shop/fulfillment-messages", params=search_params
         )
 
@@ -125,6 +172,7 @@ class InventoryMonitor(object):
                         city=address["city"],
                         district=address["district"],
                         store_name=store["storeName"],
+                        store_number=store["storeNumber"],
                         model_name=model_name,
                         pickup_quote=part["pickupSearchQuote"],
                         model=part["partNumber"],

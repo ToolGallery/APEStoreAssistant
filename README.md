@@ -9,7 +9,7 @@ Reduce the waiting time
 - [x] Monitor inventory for multiple products
 - [x] Support multiple countries
 - [x] Notification support (Dingtalk | Bark | Feishu)
-- [ ] Automatic order placement
+- [x] Automatic order placement
 
 ## Usage
 
@@ -50,7 +50,7 @@ docker run -e DINGTALK_TOKEN=yourtoken --rm toolgallery/ape-store-assistant:main
 docker run -e BARK_TOKEN=yourtoken --rm toolgallery/ape-store-assistant:main -c sg -p MTV13ZP/A MTV73ZP/A -l 329816
 ```
 
-#### Query addrsss
+#### Query address
 Only supports certain countries.
 
 ```shell
@@ -60,6 +60,38 @@ docker run --rm toolgallery/ape-store-assistant:main -la -c jp
 docker run --rm toolgallery/ape-store-assistant:main -la -c jp -ft 青森県
 docker run --rm toolgallery/ape-store-assistant:main -la -c jp -ft "青森県 山形県"
 ```
+
+#### Query payment methods
+Only supports certain countries.
+
+```shell
+docker run --rm toolgallery/ape-store-assistant:main -lpa -c cn
+```
+
+#### Automatic ordering
+Only supports certain countries.
+
+- Only supports a single model.
+- Automatically select the nearest pickup time slot.
+- After successfully placing an order, please check your email for the order information.
+
+```shell
+docker run --rm toolgallery/ape-store-assistant:main -c cn -p MPVG3CH/A -l "your location" -o -onc -1 --code 14
+
+# -o Enable order support
+# -onc The number of order notification reminders, effective after the order is successful, -1 means no limit.
+# --code Product model code  // remove in the future.
+
+# The following environment variables must be provided.
+DELIVERY_FIRST_NAME 
+DELIVERY_LAST_NAME
+DELIVERY_EMAIL
+DELIVERY_PHONE
+DELIVERY_IDCARD # Last 4 digits of ID card
+DELIVERY_PAYMENT #  Payment method, check through -lpa, such as installments0001321713
+DELIVERY_PAYMENT_NUMBER # The number of installments, regular payment is 0.
+```
+
 
 ### Supported environment variables
 

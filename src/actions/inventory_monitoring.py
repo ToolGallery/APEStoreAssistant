@@ -47,13 +47,23 @@ class InventoryMonitor(object):
                     shop_data.location,
                 )
                 pickup_lists = self.parse_data(inventory_data)
-                available_lists = [
-                    i for i in pickup_lists if i.status == DeliveryStatusEnum.AVAILABLE
-                ]
+                pickup_lists = [i for i in pickup_lists if not shop_data.store_filters or any(
+                        [
+                            True
+                            for ii in shop_data.store_filters
+                            if ii in i.store_name
+                        ]
+                    )]
+
+                if not pickup_lists:
+                    logger.warning("No available stores found")
+                    time.sleep(interval)
+                    continue
 
                 for pickup in pickup_lists:
                     logger.info(pickup.intro())
 
+                available_lists = [i for i in pickup_lists if i.status == DeliveryStatusEnum.AVAILABLE]
                 if available_lists and notification_providers:
                     self.push_notifications(available_lists, notification_providers)
 

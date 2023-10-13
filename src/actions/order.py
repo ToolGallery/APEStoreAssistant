@@ -200,9 +200,12 @@ class Order(object):
         if assert_code:
             logger.debug(f"Url {url} response {resp_json}")
             resp_status = resp_json["head"]["status"]
+            if resp_status != assert_code:
+                return False
             assert (
                 resp_status == assert_code
             ), f"Expected {assert_code}, actually {resp_status}"
+
         return resp_json
 
     def update_delivery_method(self):
@@ -381,29 +384,13 @@ class Order(object):
     def finish_checkout(self, show_cookie: bool = False):
         logger.info("Starting final checkout...")
 
-        # fixme Some returns are not 302, unable to reproduce temporarily
-        place_order_data = self.checkout_request(
-            self.secure_host + "/shop/checkoutx",
-            params={
-                "_a": "continueFromReviewToProcess",
-                "_m": "checkout.review.placeOrder",
-            },
-            # assert_code=302,
-            assert_code=0,
-        )
+        place_order_data = self.get_place_order_data()
+
         self.get_page_with_meta(
             self.secure_host + place_order_data["head"]["data"]["url"], None
         )
 
-        status_data = self.checkout_request(
-            self.secure_host + "/shop/checkoutx/statusX",
-            params={
-                "_a": "checkStatus",
-                "_m": "spinner",
-            },
-            # assert_code=302,
-            assert_code=0,
-        )
+        status_data = self.get_checkout_status_x()
 
         if show_cookie:
             cookie_str = "; ".join(
@@ -412,7 +399,47 @@ class Order(object):
 
             logger.info("Order page cookies: %s", cookie_str)
 
-        logger.info("Order done.")
+        while True:
+            thank_data = self.get_page_with_meta(
+                self.secure_host + place_order_data["head"]["data"]["url"], None
+            )
+            thank_you_interstitial = thank_data.get("thankYouInterstitial") or {}
+            order_data = thank_you_interstitial.get("d") or {}
+            order_number = order_data.get("orderNumber")
+            if order_number:
+                logger.info(f"Order done, order number: {order_number}.")
+                break
+            time.sleep(1)
+
+    def get_place_order_data(self):
+        logger.info("Get order data...")
+        place_order_data = self.checkout_request(
+            self.secure_host + "/shop/checkoutx",
+            params={
+                "_a": "continueFromReviewToProcess",
+                "_m": "checkout.review.placeOrder",
+            },
+            assert_code=302,
+        )
+        if place_order_data is False:
+            time.sleep(1)
+            return self.get_place_order_data()
+        return place_order_data
+
+    def get_checkout_status_x(self):
+        logger.info("Get order status...")
+        status_data = self.checkout_request(
+            self.secure_host + "/shop/checkoutx/statusX",
+            params={
+                "_a": "checkStatus",
+                "_m": "spinner",
+            },
+            assert_code=302,
+        )
+        if status_data is False:
+            time.sleep(1)
+            return self.get_checkout_status_x()
+        return status_data
 
     def get_page_with_meta(self, url, params, data: Optional[dict] = None):
         page_resp = self.session.get(url, params=params, data=data)

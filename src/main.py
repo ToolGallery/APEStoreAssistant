@@ -70,6 +70,9 @@ def get_args():
     parser.add_argument("--code", type=str, default="", help="15|15-pro")
     parser.add_argument("-i", "--interval", type=int, default=5, help="Query interval")
     parser.add_argument("-ft", "--filter", type=str, default="", help="")
+    parser.add_argument(
+        "-sft", "--store-filter", nargs="+", type=str, default=[], help=""
+    )
     return parser.parse_args()
 
 
@@ -106,6 +109,7 @@ def main():
         postal_code=args.postal_code,
         state=args.state,
         code=args.code,
+        store_filters=args.store_filter
     )
     InventoryMonitor().start(
         shop_data,

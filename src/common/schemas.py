@@ -10,6 +10,7 @@ class ShopSchema(object):
     postal_code: str = ""
     state: str = ""
     code: str = ""
+    store_filters: list[str] = dataclasses.field(default_factory=lambda: [])
 
 
 @dataclasses.dataclass()

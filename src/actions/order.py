@@ -409,6 +409,7 @@ class Order(object):
             if order_number:
                 logger.info(f"Order done, order number: {order_number}.")
                 break
+            time.sleep(1)
 
     def get_place_order_data(self):
         logger.info("Get order data...")

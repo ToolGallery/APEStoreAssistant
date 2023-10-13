@@ -4,10 +4,10 @@ import time
 from enum import Enum
 from typing import Optional
 
-from actions.order import Order
-from libs.requests import Request
-from libs.notifications import NotificationBase
+from actions.order import OrderSessionPool
 from common.schemas import DeliverySchema, ShopSchema, OrderSchema, OrderDeliverySchema
+from libs.notifications import NotificationBase
+from libs.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class InventoryMonitor(object):
         super().__init__()
         self.session = Request(apple_api_host)
         self.is_stop = False
-        self.order: Optional[Order] = None
+        self.order_pool: Optional[OrderSessionPool] = None
 
     def start(
         self,
@@ -36,11 +36,21 @@ class InventoryMonitor(object):
         order_notice_count: int = 1,
     ):
         logger.info(f"Start monitoring, query interval: {interval}s")
+        order_data: Optional[OrderSchema] = None
         if order:
-            self.order = Order(country=shop_data.country)
+            # only support one product
+            # fixme Is there a better way to obtain the model code?
+            order_data = OrderSchema(
+                model=shop_data.models[0],
+                model_code=shop_data.code,
+                country=shop_data.country,
+            )
+            self.enable_order(order_data)
 
+        ignore_wait = False
         while not self.is_stop:
             try:
+                ignore_wait = False
                 inventory_data = self.get_data(
                     shop_data.country,
                     shop_data.models,
@@ -69,28 +79,31 @@ class InventoryMonitor(object):
 
                 if available_lists and order:
                     for pickup in available_lists:
-                        # fixme Is there a better way to obtain the model code?
-                        order_data = OrderSchema(
-                            model=pickup.model,
-                            model_code=shop_data.code,
-                            store_number=pickup.store_number,
-                            country=shop_data.country,
-                            state=pickup.state,
-                            city=pickup.city,
-                            district=pickup.district,
-                            delivery=delivery_data,
-                        )
-                        self.start_order(
+                        order_data.store_number = pickup.store_number
+                        order_data.state = pickup.state
+                        order_data.city = pickup.city
+                        order_data.district = pickup.district
+                        order_data.delivery = delivery_data
+
+                        order_result = self.start_order(
                             order_data,
                             notification_providers,
                             notice_count=order_notice_count,
                         )
+                        if order_result is False:
+                            ignore_wait = True
 
             except Exception as e:
                 logging.exception(
                     "Failed to retrieve inventory data with error: ", exc_info=e
                 )
-            time.sleep(interval)
+                ignore_wait = True
+            if not ignore_wait:
+                time.sleep(interval)
+
+    def enable_order(self, data: OrderSchema):
+        self.order_pool = OrderSessionPool()
+        self.order_pool.start(data)
 
     def start_order(
         self,
@@ -98,7 +111,8 @@ class InventoryMonitor(object):
         notification_providers: list[NotificationBase],
         notice_count: int,
     ):
-        order_result = self.order.start_order(data)
+        order_obj = self.order_pool.get()
+        order_result = order_obj.start_order(data)
         if order_result:
             for provider in notification_providers:
                 title, content = (
@@ -109,7 +123,8 @@ class InventoryMonitor(object):
             logger.info(
                 "The order has been successfully placed, and the program will automatically exit."
             )
-            sys.exit(0)
+            self.stop()
+        return order_result
 
     def push_notifications(
         self, pickup_lists: list[DeliverySchema], providers: list[NotificationBase]
@@ -192,3 +207,8 @@ class InventoryMonitor(object):
                 )
 
         return deliveries
+
+    def stop(self):
+        self.is_stop = True
+        self.order_pool and self.order_pool.stop()
+        sys.exit(0)

@@ -1,7 +1,9 @@
+import dataclasses
 import json
 import logging
 import random
 import re
+import threading
 import time
 from datetime import datetime
 from typing import Optional
@@ -30,11 +32,7 @@ class Order(object):
         )
         self.secure_host = ""
 
-    def start_order(self, order_data: OrderSchema):
-        logger.info(
-            f"Order starting with {order_data.model_code} {order_data.model} {order_data.state} {order_data.city}..."
-        )
-
+    def init_order(self, order_data: OrderSchema):
         self.add_to_cart(order_data.model, order_data.model_code)
         cart_item_id = self.get_cart_item_id()
 
@@ -53,6 +51,13 @@ class Order(object):
 
         logger.debug("Access '/bg' page")
         self.get_page_with_meta(signin_data["head"]["data"]["url"], None)
+
+        self.update_delivery_method()
+
+    def start_order(self, order_data: OrderSchema):
+        logger.info(
+            f"Order starting with {order_data.model_code} {order_data.model} {order_data.state} {order_data.city}..."
+        )
 
         address_data = self.fill_address(
             order_data.store_number,
@@ -194,19 +199,13 @@ class Order(object):
         resp_json = resp.json()
         if assert_code:
             logger.debug(f"Url {url} response {resp_json}")
-            assert resp_json["head"]["status"] == assert_code
+            resp_status = resp_json["head"]["status"]
+            assert (
+                resp_status == assert_code
+            ), f"Expected {assert_code}, actually {resp_status}"
         return resp_json
 
-    def fill_address(
-        self,
-        store_number: str,
-        country: str,
-        state: str,
-        city: str,
-        district: str,
-    ):
-        logger.info("Starting fill address...")
-
+    def update_delivery_method(self):
         # Pick up at physical store
         pick_store_data = self.checkout_request(
             self.secure_host + "/shop/checkoutx",
@@ -218,6 +217,16 @@ class Order(object):
                 "checkout.fulfillment.fulfillmentOptions.selectFulfillmentLocation": "RETAIL",
             },
         )
+
+    def fill_address(
+        self,
+        store_number: str,
+        country: str,
+        state: str,
+        city: str,
+        district: str,
+    ):
+        logger.info("Starting fill address...")
 
         data = {
             "checkout.fulfillment.pickupTab.pickup.storeLocator.showAllStores": "false",
@@ -369,14 +378,17 @@ class Order(object):
             data=data,
         )
 
-    def finish_checkout(self):
+    def finish_checkout(self, show_cookie: bool = False):
         logger.info("Starting final checkout...")
+
+        # fixme Some returns are not 302, unable to reproduce temporarily
         place_order_data = self.checkout_request(
             self.secure_host + "/shop/checkoutx",
             params={
                 "_a": "continueFromReviewToProcess",
                 "_m": "checkout.review.placeOrder",
             },
+            # assert_code=302,
             assert_code=0,
         )
         self.get_page_with_meta(
@@ -389,8 +401,16 @@ class Order(object):
                 "_a": "checkStatus",
                 "_m": "spinner",
             },
+            # assert_code=302,
             assert_code=0,
         )
+
+        if show_cookie:
+            cookie_str = "; ".join(
+                [f"{k}={v}" for k, v in self.session.session.cookies.get_dict().items()]
+            )
+
+            logger.info("Order page cookies: %s", cookie_str)
 
         logger.info("Order done.")
 
@@ -411,3 +431,62 @@ class Order(object):
         self.session.session.headers.update(headers)
 
         return meta_json_data
+
+
+@dataclasses.dataclass()
+class PoolData(object):
+    order: Order
+    timestamp: float
+    available: bool = True
+
+
+class OrderSessionPool(object):
+    def __init__(self, timeout: int = 60 * 30) -> None:
+        super().__init__()
+        self.timeout = timeout
+        self.pools: list[PoolData] = []
+        self.redundant_time = 60 * 5
+        self.lock = threading.Lock()
+        self.is_stop = False
+
+    def start(self, order_data: OrderSchema):
+        thread = threading.Thread(
+            target=self.handle_pool, args=(order_data,), name="OrderPool"
+        )
+        thread.start()
+
+    def handle_pool(self, order_data: OrderSchema, max_count: int = 3):
+        timeout = self.timeout - self.redundant_time
+        logger.info("Start maintaining the order session pool...")
+        while not self.is_stop:
+            for pool in self.pools:
+                if time.time() - pool.timestamp >= timeout:
+                    pool.available = False
+            with self.lock:
+                self.pools = [i for i in self.pools if i.available]
+
+            logger.info(f"Number of available order session pools: {len(self.pools)}")
+
+            while max_count - len(self.pools) > 0:
+                pool_data = self.new(order_data)
+                with self.lock:
+                    self.pools.append(pool_data)
+            time.sleep(30)
+
+    def new(self, order_data: OrderSchema) -> PoolData:
+        create_timestamp = time.time()
+        order = Order(order_data.country)
+        order.init_order(order_data)
+        return PoolData(order=order, timestamp=create_timestamp)
+
+    def stop(self):
+        self.is_stop = True
+
+    def get(self) -> Order:
+        while True:
+            if not self.pools:
+                time.sleep(0.1)
+                continue
+            with self.lock:
+                pool_data = self.pools.pop(0)
+            return pool_data.order

@@ -30,6 +30,9 @@ docker run --rm toolgallery/ape-store-assistant:main -h
 -c COUNTRY, --country COUNTRY cn|hk-zh|sg|jp
 --code CODE 15|15-pro
 -i, --interval default:5 Query interval
+--ac-type iphone14|iphone14promax|iphone14plus
+    iphone14 for iPhone15/iPhone15 Pro, iphone14promax for iPhone15 Pro Max, iphone14plus for iPhone15 Plus
+--ac-product AC+ Product
 ```
 
 #### Query products

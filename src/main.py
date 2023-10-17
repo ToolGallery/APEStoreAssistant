@@ -73,6 +73,8 @@ def get_args():
     parser.add_argument(
         "-sft", "--store-filter", nargs="+", type=str, default=[], help=""
     )
+    parser.add_argument("--ac-type", type=str, default="", help="iphone14|iphone14promax|iphone14plus")
+    parser.add_argument("--ac-product", type=str, default="", help="SJTU2CH/A|SJTP2CH/A|SJTW2CH/A|SJTR2CH/A")
     return parser.parse_args()
 
 
@@ -118,6 +120,8 @@ def main():
         notification_providers=get_notification_providers(),
         interval=args.interval,
         order_notice_count=args.order_notice_count,
+        ac_model=args.ac_product,
+        ac_type=args.ac_type
     )
 
 

@@ -501,10 +501,15 @@ class OrderSessionPool(object):
             time.sleep(30)
 
     def new(self, order_data: OrderSchema) -> PoolData:
-        create_timestamp = time.time()
-        order = Order(order_data.country)
-        order.init_order(order_data)
-        return PoolData(order=order, timestamp=create_timestamp)
+        try:
+            create_timestamp = time.time()
+            order = Order(order_data.country)
+            order.init_order(order_data)
+            return PoolData(order=order, timestamp=create_timestamp)
+        except Exception as e:
+            logging.exception("Init order fail with error", exc_info=e)
+            time.sleep(1)
+            return self.new(order_data)
 
     def stop(self):
         self.is_stop = True

@@ -107,3 +107,5 @@ class OrderSchema(object):
     district: str = ""
     store_number: str = ""
     delivery: Optional[OrderDeliverySchema] = None
+    ac_type: str = ""
+    ac_model: str = ""

@@ -34,6 +34,8 @@ class InventoryMonitor(object):
         notification_providers: Optional[list[NotificationBase]] = None,
         interval: int = 5,
         order_notice_count: int = 1,
+        ac_type : str = "",
+        ac_model : str = ""
     ):
         logger.info(f"Start monitoring, query interval: {interval}s")
         order_data: Optional[OrderSchema] = None
@@ -44,6 +46,8 @@ class InventoryMonitor(object):
                 model=shop_data.models[0],
                 model_code=shop_data.code,
                 country=shop_data.country,
+                ac_type=ac_type,
+                ac_model=ac_model
             )
             self.enable_order(order_data)
 

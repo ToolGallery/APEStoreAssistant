@@ -33,7 +33,7 @@ class Order(object):
         self.secure_host = ""
 
     def init_order(self, order_data: OrderSchema):
-        self.add_to_cart(order_data.model, order_data.model_code)
+        self.add_to_cart(order_data.model, order_data.model_code, order_data.ac_type, order_data.ac_model)
         cart_item_id = self.get_cart_item_id()
 
         signin_url, signin_params, secure_api_host = self.start_checkout(
@@ -101,7 +101,7 @@ class Order(object):
         logger.debug(f"Cart item id: {item_id}")
         return item_id
 
-    def add_to_cart(self, model_number: str, phone_model: str):
+    def add_to_cart(self, model_number: str, phone_model: str, ac_type: str, ac_model: str):
         logger.info("Adding to cart...")
         resp_atb = self.session.get("/shop/beacon/atb")
         atb_str: str = resp_atb.cookies.get("as_atb")
@@ -111,12 +111,15 @@ class Order(object):
             "product": model_number,
             "purchaseOption": "fullPrice",
             "step": "select",
-            # "ao.add_iphone15_ac_iup": "none", # fixme apple care?
             "ams": "0",
             "atbtoken": atb_token,
             "igt": "true",
             "add-to-cart": "add-to-cart",
         }
+
+        if ac_type:
+            key = "ao.add_" + ac_type +"_ac_iup"
+            params[key] = ac_model
 
         resp = self.session.get(
             f"/shop/buy-iphone/iphone-{phone_model}/{model_number}#",
